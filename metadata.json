@@ -1,0 +1,6 @@
+{
+  "name": "LipidIQ - Medical Lipid Metabolism & Chemistry Exam",
+  "description": "High-yield interactive medical exam platform for Lipid Chemistry and Metabolism featuring a 100-question clinical bank, per-question reflex timer, encouraging feedback, and pathway weakness analysis.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
