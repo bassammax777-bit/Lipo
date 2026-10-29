@@ -1,14 +1,17 @@
 import React from 'react';
 import { LipidCategory, StudentStats, WeaknessRecord } from '../types';
 import { CATEGORIES, CATEGORY_INFO, QUESTION_BANK } from '../data/questionBank';
-import { Zap, ShieldCheck, Target, Sparkles, Clock, CheckCircle2, ChevronRight, Award } from 'lucide-react';
+import { Zap, ShieldCheck, Target, Sparkles, Clock, TimerOff, CheckCircle2, ChevronRight, Award } from 'lucide-react';
 
 interface DashboardProps {
   stats: StudentStats;
   weaknesses: WeaknessRecord[];
+  isTimerEnabled: boolean;
+  onToggleTimerEnabled: (enabled: boolean) => void;
   onStartQuiz: (options: {
     mode: 'sprint' | 'century' | 'category' | 'retest';
     category?: LipidCategory;
+    difficulty?: 'Foundational' | 'Intermediate' | 'all';
     questionCount?: number;
     timePerQuestion?: number;
   }) => void;
@@ -19,6 +22,8 @@ interface DashboardProps {
 export const Dashboard: React.FC<DashboardProps> = ({
   stats,
   weaknesses,
+  isTimerEnabled,
+  onToggleTimerEnabled,
   onStartQuiz,
   onNavigateToBank,
   onNavigateToWeaknesses,
@@ -27,6 +32,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
     stats.totalAnswered > 0
       ? Math.round((stats.totalCorrect / stats.totalAnswered) * 100)
       : 0;
+
+  const [selectedDifficulty, setSelectedDifficulty] = React.useState<'Foundational' | 'all'>('Foundational');
 
   const avgSpeed =
     stats.totalAnswered > 0
@@ -46,22 +53,103 @@ export const Dashboard: React.FC<DashboardProps> = ({
           <div className="flex items-center gap-2 text-xs font-semibold tracking-wider text-blue-300 uppercase mb-2">
             <span>USMLE &amp; Medical Biochemistry</span>
             <span aria-hidden="true">·</span>
-            <span>Timed Clinical Exam Arena</span>
+            <span>Clinical Exam Arena</span>
           </div>
           <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-white mb-3 text-balance">
-            Master Lipid Metabolism &amp; Chemistry with Rapid-Fire Clinical Precision
+            Master Lipid Metabolism &amp; Chemistry with Clinical Precision
           </h1>
-          <p className="text-sm md:text-base text-slate-300 mb-6 leading-relaxed">
-            Test your quick reflexes with high-yield board vignettes. Get immediate encouraging feedback on correct deductions, clear biochemical breakdowns on errors, and automatic weakness tracking.
+          <p className="text-sm md:text-base text-slate-300 mb-5 leading-relaxed">
+            High-yield board vignettes covering all 6 lipid disciplines. Get immediate encouraging feedback on correct deductions, clear biochemical breakdowns on errors, and automatic weakness tracking.
           </p>
+
+          {/* Quick Settings: Timer + Difficulty */}
+          <div className="flex flex-wrap items-center gap-3 mb-5">
+            {/* Timer Toggle */}
+            <div className="flex items-center gap-2 p-1.5 bg-black/30 border border-white/10 rounded-xl">
+              <span className="text-xs text-slate-300 px-2 font-medium flex items-center gap-1.5">
+                <Clock className="w-3.5 h-3.5 text-blue-400" />
+                <span>المؤقت:</span>
+              </span>
+              <button
+                onClick={() => onToggleTimerEnabled(false)}
+                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
+                  !isTimerEnabled
+                    ? 'bg-emerald-500 text-slate-950 shadow-sm'
+                    : 'text-slate-300 hover:text-white'
+                }`}
+              >
+                <TimerOff className="w-3.5 h-3.5" />
+                <span>متوقف (Untimed)</span>
+              </button>
+              <button
+                onClick={() => onToggleTimerEnabled(true)}
+                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
+                  isTimerEnabled
+                    ? 'bg-amber-400 text-slate-950 shadow-sm'
+                    : 'text-slate-300 hover:text-white'
+                }`}
+              >
+                <Zap className="w-3.5 h-3.5 fill-current" />
+                <span>مفعل (25s)</span>
+              </button>
+            </div>
+
+            {/* Difficulty Toggle */}
+            <div className="flex items-center gap-2 p-1.5 bg-black/30 border border-white/10 rounded-xl">
+              <span className="text-xs text-slate-300 px-2 font-medium flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                <span>الصعوبة:</span>
+              </span>
+              <button
+                onClick={() => setSelectedDifficulty('Foundational')}
+                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
+                  selectedDifficulty === 'Foundational'
+                    ? 'bg-blue-500 text-white shadow-sm'
+                    : 'text-slate-300 hover:text-white'
+                }`}
+              >
+                <span>أسهل (Foundational)</span>
+              </button>
+              <button
+                onClick={() => setSelectedDifficulty('all')}
+                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
+                  selectedDifficulty === 'all'
+                    ? 'bg-slate-700 text-white shadow-sm'
+                    : 'text-slate-300 hover:text-white'
+                }`}
+              >
+                <span>مختلط (All)</span>
+              </button>
+            </div>
+          </div>
 
           <div className="flex flex-wrap gap-3">
             <button
-              onClick={() => onStartQuiz({ mode: 'sprint', questionCount: 15, timePerQuestion: 25 })}
-              className="flex items-center gap-2 px-5 py-2.5 text-sm font-bold text-slate-950 bg-amber-400 hover:bg-amber-300 active:bg-amber-500 rounded-xl shadow transition-all cursor-pointer"
+              onClick={() =>
+                onStartQuiz({
+                  mode: 'sprint',
+                  questionCount: 15,
+                  difficulty: selectedDifficulty,
+                  timePerQuestion: isTimerEnabled ? 25 : 0,
+                })
+              }
+              className={`flex items-center gap-2 px-5 py-2.5 text-sm font-bold rounded-xl shadow transition-all cursor-pointer ${
+                !isTimerEnabled
+                  ? 'text-slate-950 bg-emerald-400 hover:bg-emerald-300'
+                  : 'text-slate-950 bg-amber-400 hover:bg-amber-300'
+              }`}
             >
-              <Zap className="w-4 h-4 fill-current" />
-              <span>Start 25s Rapid Sprint (15 Qs)</span>
+              {!isTimerEnabled ? (
+                <>
+                  <Sparkles className="w-4 h-4" />
+                  <span>Start Exam (15 Qs · {selectedDifficulty === 'Foundational' ? 'Easy' : 'All'})</span>
+                </>
+              ) : (
+                <>
+                  <Zap className="w-4 h-4 fill-current" />
+                  <span>Start 25s Sprint (15 Qs)</span>
+                </>
+              )}
             </button>
 
             {weaknesses.length > 0 && (
@@ -75,10 +163,16 @@ export const Dashboard: React.FC<DashboardProps> = ({
             )}
 
             <button
-              onClick={() => onStartQuiz({ mode: 'century', questionCount: 100, timePerQuestion: 30 })}
+              onClick={() =>
+                onStartQuiz({
+                  mode: 'century',
+                  questionCount: 100,
+                  timePerQuestion: isTimerEnabled ? 30 : 0,
+                })
+              }
               className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-slate-200 bg-white/10 hover:bg-white/20 active:bg-white/25 rounded-xl border border-white/10 transition-all cursor-pointer"
             >
-              <span>The 100-Question Century</span>
+              <span>The 100-Question Century {!isTimerEnabled ? '(Untimed)' : ''}</span>
             </button>
           </div>
         </div>

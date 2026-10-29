@@ -32,6 +32,7 @@ export default function App() {
   });
 
   const [activeQuizQuestions, setActiveQuizQuestions] = useState<LipidQuestion[]>([]);
+  const [isTimerEnabled, setIsTimerEnabled] = useState(false);
   const [timePerQuestion, setTimePerQuestion] = useState(25);
   const [lastQuizAnswers, setLastQuizAnswers] = useState<QuizAnswer[]>([]);
 
@@ -86,30 +87,40 @@ export default function App() {
   const handleStartQuiz = ({
     mode,
     category,
+    difficulty,
     questionCount = 15,
     timePerQuestion: timeLimit = 25,
   }: {
     mode: 'sprint' | 'century' | 'category' | 'retest';
     category?: LipidCategory;
+    difficulty?: 'Foundational' | 'Intermediate' | 'all';
     questionCount?: number;
     timePerQuestion?: number;
   }) => {
     setTimePerQuestion(timeLimit);
 
+    let basePool = QUESTION_BANK;
+    if (difficulty && difficulty !== 'all') {
+      const diffFiltered = QUESTION_BANK.filter((q) => q.difficulty === difficulty);
+      if (diffFiltered.length > 0) {
+        basePool = diffFiltered;
+      }
+    }
+
     let selected: LipidQuestion[] = [];
 
     if (mode === 'century') {
-      selected = shuffleArray(QUESTION_BANK);
+      selected = shuffleArray(basePool);
     } else if (mode === 'category' && category) {
-      const pool = QUESTION_BANK.filter((q) => q.category === category);
-      selected = shuffleArray(pool).slice(0, questionCount);
+      const pool = basePool.filter((q) => q.category === category);
+      selected = shuffleArray(pool.length > 0 ? pool : QUESTION_BANK.filter(q => q.category === category)).slice(0, questionCount);
     } else if (mode === 'retest') {
       const weaknessIds = new Set(weaknesses.map((w) => w.questionId));
       const pool = QUESTION_BANK.filter((q) => weaknessIds.has(q.id));
       selected = shuffleArray(pool);
     } else {
-      // Sprint mode: diverse mix from all categories
-      selected = shuffleArray(QUESTION_BANK).slice(0, questionCount);
+      // Sprint mode
+      selected = shuffleArray(basePool).slice(0, questionCount);
     }
 
     if (selected.length === 0) {
@@ -162,7 +173,7 @@ export default function App() {
         onNavigate={setActiveView}
         weaknessCount={weaknesses.length}
         onStartQuickSprint={() =>
-          handleStartQuiz({ mode: 'sprint', questionCount: 15, timePerQuestion: 25 })
+          handleStartQuiz({ mode: 'sprint', questionCount: 15, timePerQuestion: isTimerEnabled ? 25 : 0 })
         }
         isQuizActive={activeQuizQuestions.length > 0 && activeView === 'arena'}
       />
@@ -172,6 +183,8 @@ export default function App() {
           <Dashboard
             stats={stats}
             weaknesses={weaknesses}
+            isTimerEnabled={isTimerEnabled}
+            onToggleTimerEnabled={setIsTimerEnabled}
             onStartQuiz={handleStartQuiz}
             onNavigateToBank={() => setActiveView('bank')}
             onNavigateToWeaknesses={() => setActiveView('weaknesses')}
@@ -182,6 +195,7 @@ export default function App() {
           <QuizArena
             questions={activeQuizQuestions}
             timePerQuestion={timePerQuestion}
+            initialTimerEnabled={isTimerEnabled}
             onFinishQuiz={handleFinishQuiz}
             onExitQuiz={() => setActiveView('dashboard')}
             onRecordWeakness={handleRecordWeakness}

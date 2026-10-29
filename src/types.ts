@@ -6,7 +6,7 @@ export type LipidCategory =
   | 'Plasma Lipoproteins'
   | 'Phospholipids & Sphingolipids';
 
-export type QuestionDifficulty = 'Intermediate' | 'Advanced';
+export type QuestionDifficulty = 'Foundational' | 'Intermediate' | 'Advanced';
 
 export type QuestionStyle =
   | 'clinical_vignette'

@@ -129,8 +129,8 @@ export const QuestionBankExplorer: React.FC<QuestionBankExplorerProps> = ({
             className="bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
           >
             <option value="all">All Difficulties</option>
-            <option value="Intermediate">Intermediate</option>
-            <option value="Advanced">Advanced / Board Level</option>
+            <option value="Foundational">Foundational / Easy (أسهل)</option>
+            <option value="Intermediate">Intermediate (متوسط)</option>
           </select>
 
           {/* Question Style */}
